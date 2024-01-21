@@ -1,0 +1,1 @@
+A collection of self-made word lists. I am adding words as they come into my mind.
