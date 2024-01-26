@@ -19,11 +19,8 @@ jobs:
         run: |
           cd test-scripts/
           javac PlainListTests.java
-          ls -al
           cd ..
-          ls -al
-          cp test-scripts/PlainListTests .
-          ls -al
+          cp test-scripts/PlainListTests.class .
       - name: run test
         run: |
           java PlainListTests
