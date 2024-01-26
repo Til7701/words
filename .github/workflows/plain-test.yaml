@@ -20,4 +20,6 @@ jobs:
           cd test-scripts/
           javac PlainListTests.java
       - name: run test
-        run: java PlainListTests
+        run: |
+          cd test-scripts/
+          java PlainListTests
