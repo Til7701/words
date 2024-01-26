@@ -16,6 +16,6 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
       - name: compile test class
-        run: javac test-scripts/PlainListTest.java
+        run: javac test-scripts/PlainListTests.java
       - name: run test
-        run: java test-scripts/PlainListTest
+        run: java test-scripts/PlainListTests
