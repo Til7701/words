@@ -21,6 +21,7 @@ jobs:
           javac PlainListTests.java
           cd ..
           cp test-scripts/PlainListTests.class .
+          cp 'test-scripts/PlainListTests$1.class' .
       - name: run test
         run: |
           java PlainListTests
