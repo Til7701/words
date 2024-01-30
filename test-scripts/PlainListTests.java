@@ -4,6 +4,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
 
 public class PlainListTests {
 
@@ -13,10 +17,43 @@ public class PlainListTests {
         Files.walkFileTree(Path.of("./plain"), new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                String[] lines = Files.readAllLines(file).toArray(new String[0]);
-                testForDuplicates(file.toString(), lines);
-                testForWhiteSpace(file.toString(), lines);
-                testSorted(file.toString(), lines);
+                List<String> lines = Files.readAllLines(file).stream().toList();
+
+                // test if sorted
+                final List<String> sortedLines = lines.stream().sorted().toList();
+                if (!lines.equals(sortedLines)) {
+                    print("%s is not sorted%n", file);
+                }
+                lines = new ArrayList<>(sortedLines); // mutable list
+
+                final Iterator<String> it = lines.listIterator();
+                String previousLine = "";
+                while (it.hasNext()) {
+                    final String line = it.next();
+                    if (line.isBlank()) {
+                        fail = true;
+                        it.remove();
+                        print("%s empty line%n", file);
+                    } else if (line.contains(" ") || line.contains("\t")) {
+                        fail = true;
+                        it.remove();
+                        print("%s line with whitespace%n", file);
+                    } else if (previousLine.equals(line)) { // remove duplicates
+                        fail = true;
+                        it.remove();
+                        print("%s duplicate word: %s%n", file, line);
+                    }
+                    previousLine = line;
+                }
+
+                Optional<String> fileString = lines.stream().reduce((a, b) -> a + System.lineSeparator() + b);
+                if (fileString.isPresent())
+                    Files.writeString(file, fileString.get());
+                else {
+                    fail = true;
+                    print("could not create string to write to file");
+                }
+
                 return FileVisitResult.CONTINUE;
             }
         });
@@ -24,38 +61,8 @@ public class PlainListTests {
             System.exit(1);
     }
 
-    private static void testForDuplicates(String file, String[] lines) {
-        for (int i = 0; i < lines.length; i++) {
-            for (int j = 0; j < lines.length; j++) {
-                if (lines[i].equals(lines[j]) && i != j) {
-                    fail = true;
-                    System.err.printf("%s:%s and %s duplicate word: \"%s\"%n", file, i, j, lines[i]);
-                }
-            }
-        }
-    }
-
-    private static void testForWhiteSpace(String file, String[] lines) {
-        for (int i = 0; i < lines.length; i++) {
-            if (lines[i].isBlank()) {
-                fail = true;
-                System.err.printf("%s:%s empty line%n", file, i + 1);
-            } else if (lines[i].contains(" ") || lines[i].contains("\t")) {
-                fail = true;
-                System.err.printf("%s:%s line with whitespace%n", file, i + 1);
-            }
-        }
-    }
-
-    private static void testSorted(String file, String[] lines) {
-        if (lines.length == 1)
-            return;
-        for (int i = 1; i < lines.length; i++) {
-            if (lines[i].compareTo(lines[i - 1]) < 0) {
-                fail = true;
-                System.err.printf("%s:%s, %s wrong order: \"%s\", \"%s\"%n", file, (i - 1), i, lines[i - 1], lines[i]);
-            }
-        }
+    private static void print(String format, Object... objects) {
+        System.err.printf(format, objects);
     }
 
 }
