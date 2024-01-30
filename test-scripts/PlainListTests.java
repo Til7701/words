@@ -5,7 +5,6 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,31 +21,35 @@ public class PlainListTests {
                 // test if sorted
                 final List<String> sortedLines = lines.stream().sorted().toList();
                 if (!lines.equals(sortedLines)) {
+                    fail = true;
                     print("%s is not sorted%n", file);
                 }
-                lines = new ArrayList<>(sortedLines); // mutable list
+                lines = sortedLines;
 
-                final Iterator<String> it = lines.listIterator();
+                final List<String> newLines = new ArrayList<>(sortedLines.size());
                 String previousLine = "";
-                while (it.hasNext()) {
-                    final String line = it.next();
+                for (int i = 0; i < lines.size(); i++) {
+                    final String line = lines.get(i);
                     if (line.isBlank()) {
                         fail = true;
-                        it.remove();
                         print("%s empty line%n", file);
                     } else if (line.contains(" ") || line.contains("\t")) {
                         fail = true;
-                        it.remove();
-                        print("%s line with whitespace%n", file);
+                        String l = line.trim();
+                        if (line.contains(" ") || line.contains("\t")) {
+                            newLines.add(l);
+                        }
+                        print("%s:%s line with whitespace%n", file, i);
                     } else if (previousLine.equals(line)) { // remove duplicates
                         fail = true;
-                        it.remove();
                         print("%s duplicate word: %s%n", file, line);
+                    } else {
+                        newLines.add(line);
                     }
                     previousLine = line;
                 }
 
-                Optional<String> fileString = lines.stream().reduce((a, b) -> a + "\n" + b);
+                Optional<String> fileString = newLines.stream().sorted().reduce((a, b) -> a + "\n" + b);
                 if (fileString.isPresent())
                     Files.writeString(file, fileString.get());
                 else {
