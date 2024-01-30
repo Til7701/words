@@ -46,7 +46,7 @@ public class PlainListTests {
                     previousLine = line;
                 }
 
-                Optional<String> fileString = lines.stream().reduce((a, b) -> a + System.lineSeparator() + b);
+                Optional<String> fileString = lines.stream().reduce((a, b) -> a + "\n" + b);
                 if (fileString.isPresent())
                     Files.writeString(file, fileString.get());
                 else {
